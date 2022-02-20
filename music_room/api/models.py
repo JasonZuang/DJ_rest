@@ -12,8 +12,9 @@ def generateRoomCode():
 
 
 # Create your models here.
+# Host will be determiend using session keys
 class Room(models.Model):
-    code = models.CharField(max_length=8, default='',unique=True)
+    code = models.CharField(max_length=8, default=generateRoomCode,unique=True)
     host = models.CharField(max_length=50, unique=True)
     guestPause = models.BooleanField(null=False, default=True)
     skipVotes = models.IntegerField(null=False, default=1)
