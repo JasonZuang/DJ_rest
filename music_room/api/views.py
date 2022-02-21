@@ -11,9 +11,27 @@ from rest_framework.response import Response
 class RoomApiView(generics.ListAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+    
+#Get request for specific Room in database
+#we will pass 'code' in the url with the unique code to room
+#If room returns from ORM send back first room found
+class GetRoom(APIView):
+    serializer_class = RoomSerializer
+    lookup_url_kwarg = 'code'
+    def get(self,request,format=None):
+        code = request.GET.get(self.lookup_url_kwarg)
+        if code != None:
+            room = Room.objects.filter(code=code)
+            if len(room) > 0:
+                data = RoomSerializer(room[0]).data
+                data['is_host'] = self.request.session.session_key == room[0].host
+                return Response(data, status=status.HTTP_200_OK)
+            return Response({'No Room Found':'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'Bad Request':'Code Parameter Not Found'}, status=status.HTTP_400_BAD_REQUEST)
 
 #Creates a session key if new user, Otherwise sets the session key as ID for host
-#If data inputed into serializer works, then it would create a session key and 
+#If data inputed into serializer works, then it would create a session key and create new room
+#else it pulls a pre-existing room and then updates the vote counts information
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
     def post(self,request,format=None):
