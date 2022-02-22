@@ -29,6 +29,22 @@ class GetRoom(APIView):
             return Response({'No Room Found':'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'Bad Request':'Code Parameter Not Found'}, status=status.HTTP_400_BAD_REQUEST)
 
+#Only new thing here is that request sessions is a dictionary that allows
+#Session information to be stored in the dict thats relevant to the user
+class JoinRoom(APIView):
+    def post(self,request,format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        code = request.data.get('code')
+        if code != None:
+            roomResult = Room.objects.filter(code=code)
+            if len(roomResult) >0:
+                room = roomResult[0]
+                self.request.session['room_code'] = code
+                return Response({'Message':'Joined'}, status=status.HTTP_200_OK)
+            return Response({'Bad Request':'Invalid Room Code'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'Bad Request':'No Code'}, status=status.HTTP_400_BAD_REQUEST)
+
 #Creates a session key if new user, Otherwise sets the session key as ID for host
 #If data inputed into serializer works, then it would create a session key and create new room
 #else it pulls a pre-existing room and then updates the vote counts information
@@ -48,8 +64,10 @@ class CreateRoomView(APIView):
                 room.guestPause = guestPause
                 room.skipVotes = skipVotes
                 room.save(update_fields=['guestPause','skipVotes'])
+                self.request.session['room_code'] = room.code
             else:
                 room = Room(host=host,guestPause = guestPause, skipVotes=skipVotes)
                 room.save()
+                self.request.session['room_code'] = room.code
 
             return Response(RoomSerializer(room).data,status=status.HTTP_201_CREATED)

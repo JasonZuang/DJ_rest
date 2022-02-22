@@ -54,7 +54,7 @@ function CreateRoomPage(){
         console.log(send);
     }
     return(
-        <>  
+        <div className='center'>  
             <Grid container spacing={1}>
                 <Grid item xs={12} align="center">
                     <Typography component='h4' variant = 'h4'>Create Room</Typography>
@@ -103,7 +103,7 @@ function CreateRoomPage(){
                     </Button>
                 </Grid>
             </Grid>
-        </>
+        </div>
     )
     //12 in Grid is the entire width of the grid
 }

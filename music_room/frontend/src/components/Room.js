@@ -30,11 +30,12 @@ function Room(props){
     
     return(
         <>
+            <div className='center'>
                 <h1>Room Code: {roomCode}</h1>
                 <p>Votes to Skip: {roomData.votesSkip}</p>
                 <p>Is Host? {roomData.isHost ? "Yes" : "Not Host"}</p>
                 <p>Can Guest Pause? {roomData.guestPause ? "Guests May Pause" : "Guests May Not Pause"}</p>
-            
+            </div>
         </>
     )
 }
