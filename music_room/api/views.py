@@ -5,6 +5,7 @@ from .serializers import RoomSerializer, CreateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 
 #Api view for list of Rooms
 #Pulls all the available/created rooms to display on REST framework page
@@ -29,6 +30,19 @@ class GetRoom(APIView):
             return Response({'No Room Found':'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'Bad Request':'Code Parameter Not Found'}, status=status.HTTP_400_BAD_REQUEST)
 
+#When Host leaves the room the Cache is cleared
+#The room the host is hosting is deleted from database
+class LeaveRoom(APIView):
+    def post(self,request,format=None):
+        if "room_code" in self.request.session:
+            self.request.session.pop('room_code')
+            host_id = self.request.session.session_key
+            rooms = Room.objects.filter(host=host_id)
+            if len(rooms) >0:
+                room = rooms[0]
+                room.delete()
+            return Response({'Message':'You Left the Room'}, status=status.HTTP_200_OK)
+            
 #Only new thing here is that request sessions is a dictionary that allows
 #Session information to be stored in the dict thats relevant to the user
 class JoinRoom(APIView):
@@ -71,3 +85,12 @@ class CreateRoomView(APIView):
                 self.request.session['room_code'] = room.code
 
             return Response(RoomSerializer(room).data,status=status.HTTP_201_CREATED)
+
+class UserInRoom(APIView):
+    def get(self,request, format = None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        data = {
+            'code': self.request.session.get('room_code')
+        }
+        return JsonResponse(data,status = status.HTTP_200_OK)
