@@ -13,7 +13,6 @@ function HomePage(){
     const history = useHistory();
     //Checking to see if User has already established a session
     //Connecting him with the room if room exists under session "room_code"
-    
     useEffect(()=>{
         
         fetch('/api/user-in-room').then((response)=>response.json())
@@ -38,7 +37,7 @@ function HomePage(){
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={12} align="center">
-                                    <Typography variant = "p" component="p">
+                                    <Typography variant='subtitle1' component="subtitle1">
                                             {roomCode?`Previous Room Code: ${roomCode}`:"Welcome First Timer"}
                                     </Typography>
                                 </Grid>
@@ -55,9 +54,11 @@ function HomePage(){
                                         </>
 
                                     ) : (
-                                        <Button variant = "contained" to ="/join" component={Link}>
-                                            Join Room
-                                        </Button>
+                                        <div>
+                                            <Button variant = "contained" to ="/join" component={Link}>
+                                                Join Room
+                                            </Button>
+                                        </div>
                                     )}
                                     <div>
                                         <Button variant = "contained" to ="/create" component={Link}>

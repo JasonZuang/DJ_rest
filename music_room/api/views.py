@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import generics,status
-from .serializers import RoomSerializer, CreateRoomSerializer
+from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -86,6 +86,7 @@ class CreateRoomView(APIView):
 
             return Response(RoomSerializer(room).data,status=status.HTTP_201_CREATED)
 
+
 class UserInRoom(APIView):
     def get(self,request, format = None):
         if not self.request.session.exists(self.request.session.session_key):
@@ -94,3 +95,30 @@ class UserInRoom(APIView):
             'code': self.request.session.get('room_code')
         }
         return JsonResponse(data,status = status.HTTP_200_OK)
+
+
+
+#Update room settings using settings urls
+class UpdateRoom(APIView):
+    serializer_class = UpdateRoomSerializer
+    def patch(self,request,format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            guestPause = serializer.data.get('guestPause')
+            skipVotes = serializer.data.get('skipVotes')
+            code = serializer.data.get('code')
+            rooms = Room.objects.filter(code=code)
+            
+            if not rooms.exists():
+                return Response({'No Room Found':'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
+            room = rooms[0]
+            userId = self.request.session.session_key
+            if userId != room.host:
+                Response({'Forbidden':"Invalid Host"},status=status.HTTP_403_FORBIDDEN)
+            room.guestPause = guestPause
+            room.skipVotes = skipVotes
+            room.save(update_fields=['guestPause','skipVotes'])
+            return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
+        return Response({'Bad Request':"Invalid Data"},status=status.HTTP_400_BAD_REQUEST)
